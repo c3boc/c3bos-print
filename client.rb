@@ -25,7 +25,7 @@ orders_json = '[
     "items": [
       {"name": "Club Mate", "amount": 2},
       {"name": "Premium Bier", "amount": 10},
-      {"name": "Flora Power", "amount": 3}
+      {"name": "Flora Power", "amount": null}
     ],
     "date": "2015-08-27 14:16"
   },
@@ -48,8 +48,11 @@ Date: <%= date %>
 
 ==== Order Details ====
 <% for item in items %>
+<%if item[\"amount\"] != nil %>
 * <%= item[\"amount\"] %>x <%= item[\"name\"] %>
-<% end %>
+<%else %>
+* -- <%= item[\"name\"] %>
+<% end %><% end %>
 =======================
 
 
