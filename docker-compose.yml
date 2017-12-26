@@ -12,6 +12,8 @@ services:
       - c3bos
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
+    stdin_open: true
+    tty: true
 
 networks:
   c3bos:
