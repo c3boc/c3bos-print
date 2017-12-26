@@ -1,0 +1,17 @@
+version: "3.4"
+
+services:
+  c3bos-print:
+    build:
+      context: .
+    image: c3boc/c3bos-print:latest
+    external_links:
+      - "rabbitmq"
+    networks:
+      - default
+      - c3bos
+
+networks:
+  c3bos:
+    external:
+      name: c3bos
