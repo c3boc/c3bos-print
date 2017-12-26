@@ -6,8 +6,8 @@ require 'bunny'
 
 @template = "
 ====== BOC Order ======
-ID: <%= order_id %>
-Location: <%= location %>
+ID: <%= id %>
+Location: <%= user[\"username\"] %>
 Date: <%= created_at %>
 
 ==== Order Details ====
