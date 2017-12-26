@@ -10,6 +10,8 @@ services:
     networks:
       - default
       - c3bos
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
 
 networks:
   c3bos:
