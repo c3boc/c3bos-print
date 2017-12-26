@@ -56,6 +56,7 @@ queue  = channel.queue("c3bos.orders", :auto_delete => false)
 puts "subscribe to queue"
 queue.subscribe do |delivery_info, metadata, payload|
   order = JSON.parse(payload)
+  order["order_items"].reject! { |item| item["amount"].nil? }
   puts "Order ##{order['id']} received"
   print_order(order)
 end
