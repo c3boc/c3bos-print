@@ -1,4 +1,3 @@
-require 'escper'
 require 'json'
 require 'erb'
 require 'ostruct'
@@ -19,19 +18,24 @@ Date: <%= created_at %>
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 "
 
 def print_order(order)
   orderstruct = OpenStruct.new(order)
   text = ERB.new(@template).result(orderstruct.instance_eval { binding })
-  print_engine.open
-  print_engine.print 1, text
-  print_engine.close
+  File.open("/dev/ttyUSB0", "w") { |file| file.write(text) }
 end
-
-puts "connect to printer"
-printer = Escper::VendorPrinter.new :id => 1, :name => 'Drucker', :path => '/dev/ttyUSB0', :copies => 1
-print_engine = Escper::Printer.new 'local', printer
 
 puts "declare connection"
 connection = Bunny.new(:host => "rabbitmq",
