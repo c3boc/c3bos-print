@@ -2,53 +2,18 @@ require 'escper'
 require 'json'
 require 'erb'
 require 'ostruct'
-
-printer = Escper::VendorPrinter.new :id => 1, :name => 'Drucker', :path => '/dev/usb/lp0', :copies => 1
-print_engine = Escper::Printer.new 'local', printer
+require 'bunny'
 
 
-
-orders_json = '[
-  {
-    "location": "DDOS-Bar",
-    "items": [
-      {"name": "Club Mate", "amount": 5},
-      {"name": "Premium Cola", "amount": 2},
-      {"name": "Premium Bier", "amount": 2},
-      {"name": "Flora Power", "amount": 3},
-      {"name": "Fritz Orange", "amount": 1}
-    ],
-    "date": "2015-08-27 14:12"
-  },
-  {
-    "location": "Foo-Bar",
-    "items": [
-      {"name": "Club Mate", "amount": 2},
-      {"name": "Premium Bier", "amount": 10},
-      {"name": "Flora Power", "amount": 3}
-    ],
-    "date": "2015-08-27 14:16"
-  },
-  {
-    "location": "Bar-Bar",
-    "items": [
-      {"name": "Club Mate", "amount": 3},
-      {"name": "Premium Bier", "amount": 1},
-      {"name": "Fritz Orange", "amount": 1},
-      {"name": "Flora Power", "amount": 8}
-    ],
-    "date": "2015-08-27 14:21"
-  }
-]'
-
-template = "
+@template = "
 ====== BOC Order ======
+ID: <%= order_id %>
 Location: <%= location %>
-Date: <%= date %>
+Date: <%= created_at %>
 
 ==== Order Details ====
-<% for item in items %>
-* <%= item[\"amount\"] %>x <%= item[\"name\"] %>
+<% for item in order_items %>
+* <%= item[\"amount\"] %>x <%= item[\"beverage\"][\"name\"] %>
 <% end %>
 =======================
 
@@ -56,12 +21,40 @@ Date: <%= date %>
 
 "
 
-orders = JSON.parse(orders_json)
-
-orders.each do |order|
+def print_order(order)
   orderstruct = OpenStruct.new(order)
-  text = ERB.new(template).result(orderstruct.instance_eval { binding })
+  p orderstruct
+  text = ERB.new(@template).result(orderstruct.instance_eval { binding })
   print_engine.open
   print_engine.print 1, text
   print_engine.close
 end
+
+puts "connect to printer"
+printer = Escper::VendorPrinter.new :id => 1, :name => 'Drucker', :path => '/dev/usb/lp0', :copies => 1
+print_engine = Escper::Printer.new 'local', printer
+
+puts "declare connection"
+connection = Bunny.new(:host => "rabbitmq",
+                       :port => "5672",
+                       :vhost => "c3boc.c3bos",
+                       :user => "c3bos",
+                       :password => "c3bos")
+
+puts "start connection"
+connection.start
+
+puts "create channel"
+channel = connection.create_channel
+
+puts "connec to queue"
+queue  = channel.queue("c3bos.orders", :auto_delete => false)
+
+puts "subscribe to queue"
+queue.subscribe do |delivery_info, metadata, payload|
+  order = JSON.parse(payload)
+  puts "Order ##{order['id']} received"
+  print_order(order)
+end
+
+sleep
