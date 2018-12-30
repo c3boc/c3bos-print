@@ -50,13 +50,13 @@ connection.start
 puts "create channel"
 channel = connection.create_channel
 
-puts "connec to queue"
+puts "connect to queue"
 queue  = channel.queue("c3bos.orders", :auto_delete => false)
 
 puts "subscribe to queue"
 queue.subscribe do |delivery_info, metadata, payload|
   order = JSON.parse(payload)
-  order["order_items"].reject! { |item| item["amount"].nil? }
+  order["order_items"].select! { |item| item["amount"].to_i > 0 }
   puts "Order ##{order['id']} received"
   print_order(order)
 end
