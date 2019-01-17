@@ -34,7 +34,7 @@ Date: <%= created_at %>
 def print_order(order)
   orderstruct = OpenStruct.new(order)
   text = ERB.new(@template).result(orderstruct.instance_eval { binding })
-  File.open("/dev/ttyUSB0", "w") { |file| file.write(text.encode(Encoding::CP437)) }
+  File.open("/dev/ttyUSB0", "w") { |file| file.write(text.encode(Encoding::CP437, invalid: :replace, undef: :replace)) }
 end
 
 puts "declare connection"
